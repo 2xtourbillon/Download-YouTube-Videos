@@ -6,6 +6,8 @@ import re
 import threading
 
 class Application:
+    """Builds the main frame in tkinter"""
+    
     def __init__(self, root):
         self.root = root
         self.root.grid_rowconfigure(0, weight=2)
@@ -53,6 +55,11 @@ class Application:
         self.downloadButton.grid(pady=(30, 5))
 
     def checkyoutubelink(self):
+        """Checks the YouTube link provided by user
+        
+        Returns:
+            downloadWindow() if checks are successfull, otherwise Labels directing the user for input
+        """
         # self.matchyoutubelink = re.match("^https://www.youtube.com/.", self.youtubeEntryVar)
         self.matchyoutubelink = str(self.youtubeEntryVar)
         if (not self.matchyoutubelink):
@@ -63,6 +70,7 @@ class Application:
             self.downloadWindow()
 
     def downloadWindow(self):
+        """Launches the download Window: SecondApp()"""
         
         self.newWindow = Toplevel(self.root) #create new window on top of root
         self.root.withdraw() #root dissappears
@@ -73,6 +81,11 @@ class Application:
         self.app = SecondApp(self.newWindow, self.youtubeEntryVar.get(), self.FolderName, self.ChoicesVar.get())
 
     def openDirectory(self):
+        """Allows users to open a directory dialog
+        
+        Returns:
+            True if folder name is chosen, else Label with directions
+        """
         self.FolderName = filedialog.askdirectory()
 
         if (len(self.FolderName) > 0):
@@ -82,6 +95,25 @@ class Application:
             self.fileLocationLabel.config(text='Please Choose a Directory', fg='red')
 
 class SecondApp:
+    """Launches the Progress window and download thread
+    
+    Args:
+        downloadWindow (obj): new window that was launched
+        youtubelink (str): user's youtube link
+        FolderName (str): folder where app will download content
+        Choices (str): chooses to download audio(MP3) or audio+video (MP4)
+    
+    Attributes:
+        downloadWindow (obj): new window that was launched
+        youtubelink (str): user's youtube link
+        FolderName (str): folder where app will download content
+        Choices (str): chooses to download audio(MP3) or audio+video (MP4)
+    
+    Todo:
+        * Fix the self.video_type.filesize line; it is not returning anything but pytube docs 
+            state it should be returning file size. Currently unable to download audio (MP4)
+
+    """
     
     def __init__(self, downloadWindow, youtubelink, FolderName, Choices):
         self.downloadWindow = downloadWindow
@@ -114,6 +146,7 @@ class SecondApp:
         threading.Thread(target=self.downloadFile).start()
 
     def downloadFile(self):
+        """Downloading the file"""
 
         if (self.Choices == '1'):
             self.yt.streams.filter(only_audio=True).first().download(self.FolderName)
@@ -122,6 +155,7 @@ class SecondApp:
             self.yt.streams.first().download(self.FolderName)
 
     def show_progress(self, streams=None, Chunks=None, filehandle=None, bytes_remaining=None):
+        """Showing the progress bar and evaluating status and MB size"""
         
         self.percentCount = float('%0.2f' (100-(100*(bytes_remaining/self.MaxFileSize))))
 
